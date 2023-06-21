@@ -1,7 +1,5 @@
 package com.skypro.simplebanking.dto;
 
-import com.skypro.simplebanking.entity.AccountCurrency;
-
 public class TransferRequest {
   private long fromAccountId;
   private long toUserId;
@@ -30,5 +28,13 @@ public class TransferRequest {
 
   public long getToAccountId() {
     return toAccountId;
+  }
+
+  public void setFromAccountId(long fromAccountId) {
+    this.fromAccountId = fromAccountId;
+  }
+
+  public void setToAccountId(long toAccountId) {
+    this.toAccountId = toAccountId;
   }
 }
