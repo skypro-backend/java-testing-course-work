@@ -1,8 +1,6 @@
 package com.skypro.simplebanking.controller;
 
-import com.skypro.simplebanking.exception.AccountNotFoundException;
-import com.skypro.simplebanking.exception.InsufficientFundsException;
-import com.skypro.simplebanking.exception.UserAlreadyExistsException;
+import com.skypro.simplebanking.exception.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,5 +20,15 @@ public class BankingExceptionHandlers {
   @ExceptionHandler(value = {UserAlreadyExistsException.class})
   public ResponseEntity<?> handleUserAlreadyExists() {
     return ResponseEntity.badRequest().build();
+  }
+
+  @ExceptionHandler(value = {InvalidAmountException.class})
+  public ResponseEntity<?> handleInvalidAmount() {
+    return ResponseEntity.badRequest().body("Amount should be more than 0");
+  }
+
+  @ExceptionHandler(value = {WrongCurrencyException.class})
+  public ResponseEntity<?> handleWrongCurrency() {
+    return ResponseEntity.badRequest().body("Account currencies should be same");
   }
 }

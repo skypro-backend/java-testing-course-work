@@ -4,12 +4,7 @@ import javax.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.Length;
 
 public class CreateUserRequest {
-  @NotBlank
-  @Length(max = 255)
   private String username;
-
-  @NotBlank
-  @Length(max = 255)
   private String password;
 
   public String getUsername() {

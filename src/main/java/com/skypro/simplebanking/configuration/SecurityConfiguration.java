@@ -41,7 +41,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests()
                 .antMatchers(HttpMethod.POST, "/user/")
                 .hasRole("ADMIN")
-                .antMatchers("/user/**")
+                .antMatchers("/user/*")
                 .hasRole("USER")
                 .antMatchers("/account/**")
                 .hasRole("USER")
