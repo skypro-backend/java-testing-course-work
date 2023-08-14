@@ -5,6 +5,7 @@ import com.skypro.simplebanking.entity.AccountCurrency;
 import com.skypro.simplebanking.entity.User;
 import com.skypro.simplebanking.repository.AccountRepository;
 import com.skypro.simplebanking.repository.UserRepository;
+import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.github.dockerjava.core.MediaType;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -118,9 +120,10 @@ public class UserControllerTest {
         }
     }
 
+// Проверка получения списка юзеров ("/user/list")
     @Test
     @WithMockUser(roles = "USER")
-    void givenUsers() throws Exception {
+    void givenUsers_OK() throws Exception {
                 mockMvc.perform(get("/user/list"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -136,7 +139,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
     }
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void givenUsers_AdminNoAccess_Error403() throws Exception {
@@ -144,6 +146,21 @@ public class UserControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
+// Проверка транзакции ("/transfer")
+//    @Test
+//    @WithMockUser(roles = "USER")
+//    void getTranzaction() throws Exception {
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("fromAccountId", "2");
+//        jsonObject.put("toUserId", "4");
+//        jsonObject.put("toAccountId", "4");
+//        jsonObject.put("amount", "5000");
+//
+//        mockMvc.perform(post("/transfer"))
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(jsonObject.toString()))
+//.andExpect(status().isOk());
+//    }
 
 
 }
