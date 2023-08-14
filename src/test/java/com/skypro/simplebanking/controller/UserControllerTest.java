@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,7 +25,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
@@ -93,10 +96,10 @@ public class UserControllerTest {
             account4.setAmount(4000L);
             account4.setUser(user4);
         Account account5 = new Account();
-            account4.setId(5L);
-            account4.setAccountCurrency(AccountCurrency.RUB);
-            account4.setAmount(50000L);
-            account4.setUser(user5);
+            account5.setId(5L);
+            account5.setAccountCurrency(AccountCurrency.RUB);
+            account5.setAmount(50000L);
+            account5.setUser(user5);
 
         List<User> users = List.of(user1, user2, user3, user4, user5);
         List<Account> accounts = List.of(account1, account2, account3, account4, account5);
@@ -115,24 +118,31 @@ public class UserControllerTest {
         }
     }
 
-//    @Test
-//    @WithMockUser(roles = "USER")
-//    void givenUsers() throws Exception {
-//                mockMvc.perform(get("/user/list"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$").isArray())
-//                .andExpect(jsonPath("$").isNotEmpty())
-//                .andExpect(jsonPath("$.length()").value(3));
-//    }
-//    @Test
-//    @WithMockUser(roles = "USER")
-//    void givenNoBody_whenEmptyJsonArray() throws Exception {
-//                userRepository.deleteAll();
-//                mockMvc.perform(get("/user/list"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$").isArray())
-//                .andExpect(jsonPath("$").isEmpty());
-//    }
+    @Test
+    @WithMockUser(roles = "USER")
+    void givenUsers() throws Exception {
+                mockMvc.perform(get("/user/list"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.length()").value(5));
+    }
+    @Test
+    @WithMockUser(roles = "USER")
+    void givenNoBody_whenEmptyJsonArray() throws Exception {
+                userRepository.deleteAll();
+                mockMvc.perform(get("/user/list"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void givenUsers_AdminNoAccess_Error403() throws Exception {
+        mockMvc.perform(get("/user/list"))
+                .andExpect(status().is4xxClientError());
+    }
 
 
 
