@@ -37,26 +37,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @SpringBootTest
-@AutoConfigureMockMvc
+//@AutoConfigureMockMvc
 @Testcontainers
+
 public class UserControllerTest {
 
     @Autowired
     MockMvc mockMvc;
-
+//
     @Autowired
     private UserRepository userRepository;
+//    @Autowired
+//    private UserService userService;
+//    @Autowired
+//    private AccountRepository accountRepository;
+//
+//    @Autowired
+//    private PasswordEncoder passwordEncoder;
     @Autowired
-    private UserService userService;
-    @Autowired
-    private AccountRepository accountRepository;
-
-    private PasswordEncoder passwordEncoder;
+    private DataSource dataSource;
 
     @Container
     private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")
             .withUsername("postgres")
-            .withPassword("8258");
+            .withPassword("postgres");
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -65,8 +69,7 @@ public class UserControllerTest {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
-    @Autowired
-    private DataSource dataSource;
+
 
     @Test
     void testPostgresql() throws SQLException {
@@ -77,7 +80,6 @@ public class UserControllerTest {
 
     @AfterEach
     void cleanRepository() {
-        accountRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -85,19 +87,19 @@ public class UserControllerTest {
     void createRepository() {
         User user1 = new User();
             user1.setUsername("username1");
-            user1.setPassword(passwordEncoder.encode("password1"));
+            user1.setPassword("password1");
         User user2 = new User();
             user2.setUsername("username2");
-            user2.setPassword(passwordEncoder.encode("password2"));
+            user2.setPassword("password2");
         User user3 = new User();
             user3.setUsername("username3");
-            user3.setPassword(passwordEncoder.encode("password3"));
+            user3.setPassword("password3");
         User user4 = new User();
             user4.setUsername("username4");
-            user4.setPassword(passwordEncoder.encode("password4"));
+            user4.setPassword("password4");
         User user5 = new User();
             user5.setUsername("username5");
-            user5.setPassword(passwordEncoder.encode("password5"));
+            user5.setPassword("password5");
 
         Account account1 = new Account();
             account1.setId(1L);
@@ -125,30 +127,19 @@ public class UserControllerTest {
             account4.setAmount(50000L);
             account4.setUser(user5);
 
-        List<User> users = new ArrayList<>();
-            users.add(user1);
-            users.add(user2);
-            users.add(user3);
-            users.add(user4);
-            users.add(user5);
+        List<User> users = List.of(user1, user2, user3, user4, user5);
+        List<Account> accounts = List.of(account1, account2, account3, account4, account5);
 
-        List<Account> accounts = new ArrayList<>();
-            accounts.add(account1);
-            accounts.add(account2);
-            accounts.add(account3);
-            accounts.add(account4);
-            accounts.add(account5);
 
-        accountRepository.saveAll(accounts);
         userRepository.saveAll(users);
     }
 
 
 
     @Test
-    @WithMockUser(username = "user1", roles = "USER", password = "password1")
+    @WithMockUser(roles = "USER")
     void givenNoBody_whenEmptyJsonArray() throws Exception {
-         mockMvc.perform(get("/user/list"))
+                mockMvc.perform(get("/user/list"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty());
