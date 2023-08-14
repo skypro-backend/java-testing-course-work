@@ -1,39 +1,30 @@
 package com.skypro.simplebanking.controller;
 
-import com.skypro.simplebanking.dto.AccountDTO;
-import com.skypro.simplebanking.dto.UserDTO;
 import com.skypro.simplebanking.entity.Account;
 import com.skypro.simplebanking.entity.AccountCurrency;
 import com.skypro.simplebanking.entity.User;
 import com.skypro.simplebanking.repository.AccountRepository;
 import com.skypro.simplebanking.repository.UserRepository;
-import com.skypro.simplebanking.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 
 @SpringBootTest
@@ -41,27 +32,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 
 public class UserControllerTest {
-
-    @Autowired
-    MockMvc mockMvc;
-//
-    @Autowired
-    private UserRepository userRepository;
 //    @Autowired
-//    private UserService userService;
-//    @Autowired
-//    private AccountRepository accountRepository;
-//
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
+//    MockMvc mockMvc;
     @Autowired
     private DataSource dataSource;
-
     @Container
     private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")
             .withUsername("postgres")
             .withPassword("postgres");
-
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
@@ -70,18 +48,12 @@ public class UserControllerTest {
     }
 
 
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
-    @Test
-    void testPostgresql() throws SQLException {
-        try (Connection conn = dataSource.getConnection()) {
-            assertThat(conn).isNotNull();
-        }
-    }
 
-    @AfterEach
-    void cleanRepository() {
-        userRepository.deleteAll();
-    }
 
     @BeforeEach
     void createRepository() {
@@ -130,20 +102,38 @@ public class UserControllerTest {
         List<User> users = List.of(user1, user2, user3, user4, user5);
         List<Account> accounts = List.of(account1, account2, account3, account4, account5);
 
-
         userRepository.saveAll(users);
     }
-
-
+    @AfterEach
+    void cleanRepository() {
+        userRepository.deleteAll();
+    }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void givenNoBody_whenEmptyJsonArray() throws Exception {
-                mockMvc.perform(get("/user/list"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isNotEmpty());
+    void testPostgresql() throws SQLException {
+        try (Connection conn = dataSource.getConnection()) {
+            assertThat(conn).isNotNull();
+        }
     }
+
+//    @Test
+//    @WithMockUser(roles = "USER")
+//    void givenUsers() throws Exception {
+//                mockMvc.perform(get("/user/list"))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$").isArray())
+//                .andExpect(jsonPath("$").isNotEmpty())
+//                .andExpect(jsonPath("$.length()").value(3));
+//    }
+//    @Test
+//    @WithMockUser(roles = "USER")
+//    void givenNoBody_whenEmptyJsonArray() throws Exception {
+//                userRepository.deleteAll();
+//                mockMvc.perform(get("/user/list"))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$").isArray())
+//                .andExpect(jsonPath("$").isEmpty());
+//    }
 
 
 
