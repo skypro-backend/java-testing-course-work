@@ -28,12 +28,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 
 @SpringBootTest
-//@AutoConfigureMockMvc
+@AutoConfigureMockMvc
 @Testcontainers
-
 public class UserControllerTest {
-//    @Autowired
-//    MockMvc mockMvc;
+    @Autowired
+    MockMvc mockMvc;
     @Autowired
     private DataSource dataSource;
     @Container
