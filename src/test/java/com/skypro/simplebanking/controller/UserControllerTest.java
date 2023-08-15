@@ -160,7 +160,7 @@ public class UserControllerTest {
     @Test
     @WithMockUser(roles = "USER", username = "username2")
     void getTranzaction() throws Exception {
-// Нужно передать аутенфикацию
+ // Нужно передать аутенфикацию
         TransferRequest transferRequest = new TransferRequest();
         transferRequest.setFromAccountId(2);
         transferRequest.setToUserId(4);
