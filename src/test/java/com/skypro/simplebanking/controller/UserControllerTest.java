@@ -1,12 +1,14 @@
 package com.skypro.simplebanking.controller;
 
+import com.skypro.simplebanking.configuration.AdminSecurityFilter;
+import com.skypro.simplebanking.dto.*;
 import com.skypro.simplebanking.dto.BankingUserDetails;
-import com.skypro.simplebanking.dto.TransferRequest;
 import com.skypro.simplebanking.entity.Account;
 import com.skypro.simplebanking.entity.AccountCurrency;
 import com.skypro.simplebanking.entity.User;
 import com.skypro.simplebanking.repository.AccountRepository;
 import com.skypro.simplebanking.repository.UserRepository;
+import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,13 +16,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.JavaType;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
@@ -31,6 +39,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -153,27 +163,63 @@ public class UserControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
-    // Проверка транзакции ("/transfer")
+    @Test
+    @WithMockUser(roles = "USER")
+    void getTranzaction() throws Exception {
+
+        JSONObject transfer = new JSONObject();
+        transfer.put("fromAccountId", 2);
+        transfer.put("toUserId", 4);
+        transfer.put("toAccountId", 4);
+        transfer.put("amount", 5000);
+
+        UserDetails userDetails = new BankingUserDetails(2, "username2", "password2", false);
+
+        mockMvc.perform(post("/transfer")
+//                      .with(user("username2").password("password2").authorities())
+                        .with(user(userDetails))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(transfer.toString()))
+//              .andExpect(status().isOk());
+                .andExpect(status().is4xxClientError());
+    }
 
 
 
     @Test
-    @WithMockUser(roles = "USER", username = "username2")
-    void getTranzaction() throws Exception {
- // Нужно передать аутенфикацию
-        TransferRequest transferRequest = new TransferRequest();
-        transferRequest.setFromAccountId(2);
-        transferRequest.setToUserId(4);
-        transferRequest.setToAccountId(4);
-        transferRequest.setAmount(5000);
+    @WithMockUser(roles = "ADMIN")
+    void createUser_Test_OK() throws Exception {
+        JSONObject userRequest = new JSONObject();
+        userRequest.put("username", "username");
+        userRequest.put("password", "password");
 
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonString = mapper.writeValueAsString(transferRequest);
-
-        mockMvc.perform(post("/transfer")
-                .content(jsonString))
+        mockMvc.perform(post("/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userRequest.toString()))
                 .andExpect(status().isOk());
-
     }
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void createUser_Test_TrowUserAlreadyExistsException() throws Exception {
+        JSONObject userRequest = new JSONObject();
+        userRequest.put("username", "username1");
+        userRequest.put("password", "password1");
 
+        mockMvc.perform(post("/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userRequest.toString()))
+                .andExpect(status().is4xxClientError());
+    }
+    @Test
+    @WithMockUser(roles = "USER")
+    void createUser_TestWithUserRole_notOK() throws Exception {
+        JSONObject userRequest = new JSONObject();
+        userRequest.put("username", "username");
+        userRequest.put("password", "password");
+
+        mockMvc.perform(post("/user")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userRequest.toString()))
+                .andExpect(status().isOk());
+    }
 }
