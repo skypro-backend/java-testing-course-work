@@ -16,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -30,11 +32,13 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.JavaType;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.testcontainers.shaded.org.bouncycastle.crypto.generators.BCrypt;
 
 import javax.sql.DataSource;
 import javax.validation.Valid;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +48,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.testcontainers.shaded.com.google.common.io.BaseEncoding.base64;
 
 
 @SpringBootTest
@@ -135,7 +140,6 @@ public class UserControllerTest {
         }
     }
 
-    // Проверка получения списка юзеров ("/user/list")
     @Test
     @WithMockUser(roles = "USER")
     void givenUsers_OK() throws Exception {
@@ -163,6 +167,11 @@ public class UserControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
+    private static String getBasicAuthenticationHeader(String username, String password) {
+        String valueToEncode = username + ":" + password;
+        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    }
+
     @Test
     @WithMockUser(roles = "USER")
     void getTranzaction() throws Exception {
@@ -176,12 +185,10 @@ public class UserControllerTest {
         UserDetails userDetails = new BankingUserDetails(2, "username2", "password2", false);
 
         mockMvc.perform(post("/transfer")
-//                      .with(user("username2").password("password2").authorities())
-                        .with(user(userDetails))
+                        .header("Authorization", getBasicAuthenticationHeader(userDetails.getUsername(), userDetails.getPassword()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transfer.toString()))
-//              .andExpect(status().isOk());
-                .andExpect(status().is4xxClientError());
+                        .andExpect(status().isOk());
     }
 
 
