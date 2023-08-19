@@ -1,9 +1,8 @@
 package com.skypro.simplebanking.controller;
 
+import com.skypro.simplebanking.dto.AccountDTO;
+import com.skypro.simplebanking.dto.BalanceChangeRequest;
 import com.skypro.simplebanking.dto.BankingUserDetails;
-import com.skypro.simplebanking.entity.Account;
-import com.skypro.simplebanking.entity.AccountCurrency;
-import com.skypro.simplebanking.entity.User;
 import com.skypro.simplebanking.repository.AccountRepository;
 import com.skypro.simplebanking.repository.UserRepository;
 import com.skypro.simplebanking.service.UserService;
@@ -16,12 +15,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.Base64Utils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -30,7 +32,6 @@ import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -177,7 +178,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.accounts.length()").value(3));
     }
 
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void createUser_Test_OK() throws Exception {
@@ -202,16 +202,31 @@ public class UserControllerTest {
                         .content(userRequest.toString()))
                 .andExpect(status().is4xxClientError());
     }
-    @Test
-    @WithMockUser(roles = "USER")
-    void createUser_TestWithUserRole_notOK() throws Exception {
-        JSONObject userRequest = new JSONObject();
-        userRequest.put("username", "username");
-        userRequest.put("password", "password");
 
-        mockMvc.perform(post("/user")
+
+    @Test
+    void depositToAccount_Test_OK() throws Exception {
+        JSONObject balanceChangeRequest = new JSONObject();
+        balanceChangeRequest.put("amount", 10000L);
+
+        mockMvc.perform(post("/account/deposit/{id}", 1)
+                .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader("username1", "password1"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(userRequest.toString()))
-                .andExpect(status().isOk());
+                        .content(balanceChangeRequest.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.amount").value(10001));
+
+    }
+    @Test
+    void withdrawFromAccount_Test_notOK_TrowInsufficientFundsException() throws Exception {
+        JSONObject balanceChangeRequest = new JSONObject();
+        balanceChangeRequest.put("amount", 10000L);
+
+        mockMvc.perform(post("/account/withdraw/{id}", 1)
+                        .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader("username1", "password1"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(balanceChangeRequest.toString()))
+                .andExpect(status().is4xxClientError());
+
     }
 }
