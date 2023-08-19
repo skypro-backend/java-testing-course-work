@@ -120,6 +120,7 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.length()").value(5));
     }
 
+
     @Test
     @WithMockUser(roles = "USER")
     void givenNoBody_whenEmptyJsonArray() throws Exception {
