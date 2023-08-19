@@ -123,7 +123,6 @@ public class UserControllerTest {
 
     @Test
     void getTranzaction_Test_OK() throws Exception {
-
         JSONObject transfer = new JSONObject();
         transfer.put("fromAccountId", 1);
         transfer.put("toUserId", 2);
@@ -172,9 +171,9 @@ public class UserControllerTest {
     @Test
     void getMyProfile_Test_OK() throws Exception {
         mockMvc.perform(get("/user/me")
-                .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader("username2", "password2")))
+                .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader("username1", "password1")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("username2"))
+                .andExpect(jsonPath("$.username").value("username1"))
                 .andExpect(jsonPath("$.accounts.length()").value(3));
     }
 
@@ -202,7 +201,6 @@ public class UserControllerTest {
                         .content(userRequest.toString()))
                 .andExpect(status().is4xxClientError());
     }
-
 
     @Test
     void depositToAccount_Test_OK() throws Exception {
