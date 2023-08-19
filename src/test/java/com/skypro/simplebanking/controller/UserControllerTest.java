@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +26,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -36,6 +38,7 @@ import org.testcontainers.shaded.org.bouncycastle.crypto.generators.BCrypt;
 
 import javax.sql.DataSource;
 import javax.validation.Valid;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Base64;
@@ -169,11 +172,11 @@ public class UserControllerTest {
 
     private static String getBasicAuthenticationHeader(String username, String password) {
         String valueToEncode = username + ":" + password;
-        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+        return "Basic " + Base64Utils.encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
-    @WithMockUser(roles = "USER")
+//    @WithMockUser(roles = "USER")
     void getTranzaction() throws Exception {
 
         JSONObject transfer = new JSONObject();
@@ -185,7 +188,7 @@ public class UserControllerTest {
         UserDetails userDetails = new BankingUserDetails(2, "username2", "password2", false);
 
         mockMvc.perform(post("/transfer")
-                        .header("Authorization", getBasicAuthenticationHeader(userDetails.getUsername(), userDetails.getPassword()))
+                        .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader(userDetails.getUsername(), userDetails.getPassword()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(transfer.toString()))
                         .andExpect(status().isOk());
