@@ -3,6 +3,8 @@ package com.skypro.simplebanking.controller;
 import com.skypro.simplebanking.dto.AccountDTO;
 import com.skypro.simplebanking.dto.BalanceChangeRequest;
 import com.skypro.simplebanking.dto.BankingUserDetails;
+import com.skypro.simplebanking.entity.Account;
+import com.skypro.simplebanking.entity.User;
 import com.skypro.simplebanking.repository.AccountRepository;
 import com.skypro.simplebanking.repository.UserRepository;
 import com.skypro.simplebanking.service.UserService;
@@ -32,6 +34,9 @@ import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -91,6 +96,21 @@ public class UserControllerTest {
     }
 
     @Test
+    void getTranzaction_Test_OK() throws Exception {
+        JSONObject transfer = new JSONObject();
+        transfer.put("fromAccountId", getAccountIdByUsername("username1"));
+        transfer.put("toUserId", getUserIdByUserName("username2"));
+        transfer.put("toAccountId", getAccountIdByUsername("username2"));
+        transfer.put("amount", 1);
+
+        mockMvc.perform(post("/transfer")
+                        .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader("username1", "password1"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(transfer.toString()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @WithMockUser(roles = "USER")
     void givenUsers_OK() throws Exception {
         mockMvc.perform(get("/user/list"))
@@ -117,23 +137,8 @@ public class UserControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
-    private static String getBasicAuthenticationHeader(String username, String password) {
+    private String getBasicAuthenticationHeader(String username, String password) {
         return "Basic " + Base64Utils.encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
-    }
-
-    @Test
-    void getTranzaction_Test_OK() throws Exception {
-        JSONObject transfer = new JSONObject();
-        transfer.put("fromAccountId", 1);
-        transfer.put("toUserId", 2);
-        transfer.put("toAccountId", 4);
-        transfer.put("amount", 1);
-
-        mockMvc.perform(post("/transfer")
-                        .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader("username1", "password1"))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(transfer.toString()))
-                        .andExpect(status().isOk());
     }
 
     @Test
@@ -207,7 +212,7 @@ public class UserControllerTest {
         JSONObject balanceChangeRequest = new JSONObject();
         balanceChangeRequest.put("amount", 10000L);
 
-        mockMvc.perform(post("/account/deposit/{id}", 1)
+        mockMvc.perform(post("/account/deposit/{id}", getAccountIdByUsername("username1"))
                 .header(HttpHeaders.AUTHORIZATION, getBasicAuthenticationHeader("username1", "password1"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(balanceChangeRequest.toString()))
@@ -226,5 +231,19 @@ public class UserControllerTest {
                         .content(balanceChangeRequest.toString()))
                 .andExpect(status().is4xxClientError());
 
+    }
+
+
+    private User getUserByName(String username){
+        return userRepository.findByUsername(username).orElseThrow();
+    }
+    private long getUserIdByUserName(String username){
+        return getUserByName(username).getId();
+    }
+    private long getAccountIdByUsername(String username){
+        long userId = getUserIdByUserName(username);
+        long ost = userId % userRepository.count();
+        long count = (userId - ost) / userRepository.count();
+        return count * 3 * userRepository.count() + ost*3;
     }
 }
