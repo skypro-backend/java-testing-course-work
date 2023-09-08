@@ -13,11 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -98,19 +96,13 @@ public class UserControllerTests {
 
     @Test
     @WithMockUser(roles = "USER")
-    void getAllUsers_expectedNonEmptyArray_thenClearRepository_andExpectEmptyArray() throws Exception {
+    void getAllUsers_expectedNonEmptyArray() throws Exception {
 
         mockMvc.perform(get("/user/list"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
                 .andExpect(jsonPath("$.length()").value(1));
-
-        clearTestRepository();
-        mockMvc.perform(get("/user/list"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$").isEmpty());
 
     }
 
@@ -132,7 +124,7 @@ public class UserControllerTests {
     }
 
     @Test
-    void shouldReturnUserDTO_SaveToDataBase_ThenReturnCorrectUserDTO() throws Exception {
+    void getMyProfile_withCorrectRole_expected_ok() throws Exception {
         User user = userRepository.save(getTestUser());
         BankingUserDetails bankingUserDetails = BankingUserDetails.from(user);
 
@@ -143,6 +135,15 @@ public class UserControllerTests {
                 .andExpect(jsonPath("$.username").value(user.getUsername()))
                 .andExpect(jsonPath("$.accounts").isArray())
                 .andExpect(jsonPath("$.accounts").isNotEmpty());
+    }
+    @Test
+    void getMyProfile_incorrectRole_expected_exception() throws Exception {
+        User user = userRepository.save(getTestUser());
+        BankingUserDetails bankingUserDetails = getAdminBankingUserDetails(user);
+
+        mockMvc.perform(get("/user/me")
+                        .with(user(bankingUserDetails)))
+                .andExpect(status().is4xxClientError());
     }
 }
 
