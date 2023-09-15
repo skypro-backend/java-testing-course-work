@@ -51,19 +51,6 @@ public class UserControllerTests {
         accountRepository.deleteAll();
     }
 
-    @Test
-    @WithMockUser(roles = "USER")
-    void createUserWithNotCorrectRole_expected_exception() throws Exception {
-        JSONObject userRequest = new JSONObject();
-        userRequest.put("username", "Ivan");
-        userRequest.put("password", "1234");
-
-        mockMvc.perform(post("/user/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(userRequest.toString()))
-                .andExpect(status().is4xxClientError());
-
-    }
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -78,6 +65,21 @@ public class UserControllerTests {
                 .andExpect(status().isOk());
 
     }
+    @Test
+    @WithMockUser(roles = "USER")
+    void createUserWithNotCorrectRole_expected_exception() throws Exception {
+        JSONObject userRequest = new JSONObject();
+        userRequest.put("username", "Ivan");
+        userRequest.put("password", "1234");
+
+        mockMvc.perform(post("/user/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userRequest.toString()))
+                .andExpect(status().is4xxClientError());
+
+    }
+
+
 
     @Test
     @WithMockUser(roles = "ADMIN")
