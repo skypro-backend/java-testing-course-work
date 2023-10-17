@@ -17,6 +17,16 @@ public class User {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
   private Collection<Account> accounts;
 
+    public User(String user1, String passwordUser1) {
+    }
+
+  public User(String user1) {
+  }
+
+  public User() {
+
+  }
+
   public Long getId() {
     return id;
   }
