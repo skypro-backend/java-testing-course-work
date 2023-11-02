@@ -30,8 +30,8 @@ public class ListUserDTO {
 
   public static ListUserDTO from(User user) {
     return new ListUserDTO(
-        user.getId(),
-        user.getUsername(),
-        user.getAccounts().stream().map(ListAccountDTO::from).collect(Collectors.toList()));
+            user.getId(),
+            user.getUsername(),
+            user.getAccounts().stream().map(ListAccountDTO::from).collect(Collectors.toList()));
   }
 }
