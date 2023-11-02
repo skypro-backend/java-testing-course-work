@@ -12,10 +12,15 @@ public class User {
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user-generator")
   @SequenceGenerator(name = "user-generator", sequenceName = "user_sequence")
   private Long id;
+  @Column(name = "username", unique = true)
   private String username;
+  @Column(name = "password")
   private String password;
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
   private Collection<Account> accounts;
+  @Column(name = "role")
+  @Enumerated(EnumType.STRING)
+  private Role role;
 
   public Long getId() {
     return id;
@@ -47,5 +52,13 @@ public class User {
 
   public void setAccounts(Collection<Account> accounts) {
     this.accounts = accounts;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public void setRole(Role role) {
+    this.role = role;
   }
 }

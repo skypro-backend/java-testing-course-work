@@ -29,8 +29,8 @@ public class UserDTO {
 
   public static UserDTO from(User user) {
     return new UserDTO(
-        user.getId(),
-        user.getUsername(),
-        user.getAccounts().stream().map(AccountDTO::from).collect(Collectors.toList()));
+            user.getId(),
+            user.getUsername(),
+            user.getAccounts().stream().map(AccountDTO::from).collect(Collectors.toList()));
   }
 }

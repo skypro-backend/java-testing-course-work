@@ -6,6 +6,12 @@ public class TransferRequest {
   private long toAccountId;
   private long amount;
 
+  public TransferRequest(long fromAccountId, long toAccountId, long amount) {
+    this.fromAccountId = fromAccountId;
+    this.toAccountId = toAccountId;
+    this.amount = amount;
+  }
+
   public long getToUserId() {
     return toUserId;
   }
@@ -36,5 +42,15 @@ public class TransferRequest {
 
   public void setToAccountId(long toAccountId) {
     this.toAccountId = toAccountId;
+  }
+
+  @Override
+  public String toString() {
+    return "TransferRequest{" +
+            "fromAccountId=" + fromAccountId +
+            ", toUserId=" + toUserId +
+            ", toAccountId=" + toAccountId +
+            ", amount=" + amount +
+            '}';
   }
 }

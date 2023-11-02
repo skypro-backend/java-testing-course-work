@@ -1,9 +1,11 @@
 package com.skypro.simplebanking.service;
 
+
 import com.skypro.simplebanking.dto.TransferRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Service
 public class TransferService {
@@ -14,14 +16,14 @@ public class TransferService {
   }
 
   @Transactional
-  public void transfer(long id, @RequestBody TransferRequest transferRequest) {
+  public void transfer(Long id, TransferRequest transferRequest) {
     accountService.validateCurrency(
-        transferRequest.getFromAccountId(), transferRequest.getToAccountId());
+            transferRequest.getFromAccountId(), transferRequest.getToAccountId());
     accountService.withdrawFromAccount(
-        id, transferRequest.getFromAccountId(), transferRequest.getAmount());
+            id, transferRequest.getFromAccountId(), transferRequest.getAmount());
     accountService.depositToAccount(
-        transferRequest.getToUserId(),
-        transferRequest.getToAccountId(),
-        transferRequest.getAmount());
+            transferRequest.getToUserId(),
+            transferRequest.getToAccountId(),
+            transferRequest.getAmount());
   }
 }
