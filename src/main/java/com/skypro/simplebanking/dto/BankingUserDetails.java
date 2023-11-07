@@ -23,9 +23,9 @@ public class BankingUserDetails implements UserDetails {
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     SimpleGrantedAuthority authority =
-        isAdmin
-            ? new SimpleGrantedAuthority("ROLE_ADMIN")
-            : new SimpleGrantedAuthority("ROLE_USER");
+            isAdmin
+                    ? new SimpleGrantedAuthority("ROLE_ADMIN")
+                    : new SimpleGrantedAuthority("ROLE_USER");
     return Collections.singleton(authority);
   }
 

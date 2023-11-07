@@ -32,8 +32,8 @@ public class AccountController {
 
   @PostMapping("/withdraw/{id}")
   public AccountDTO withdrawFromAccount(Authentication authentication,
-                                     @PathVariable("id") Long accountId,
-                                     @RequestBody BalanceChangeRequest balanceChangeRequest){
+                                        @PathVariable("id") Long accountId,
+                                        @RequestBody BalanceChangeRequest balanceChangeRequest){
     BankingUserDetails bankingUserDetails = (BankingUserDetails) authentication.getPrincipal();
     return accountService.withdrawFromAccount(bankingUserDetails.getId(),accountId, balanceChangeRequest.getAmount());
   }

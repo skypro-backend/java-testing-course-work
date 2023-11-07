@@ -7,6 +7,7 @@ import com.skypro.simplebanking.dto.UserDTO;
 import javax.validation.Valid;
 
 import com.skypro.simplebanking.service.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +23,9 @@ public class UserController {
   }
 
   @PostMapping
+  @PreAuthorize("hasRole('ADMIN')")
   public UserDTO createUser(@RequestBody @Valid CreateUserRequest userRequest) {
-    return userService.createUser(userRequest.getUsername(), userRequest.getPassword());
+    return userService.createUser(userRequest.getUsername(), userRequest.getPassword(), userRequest.getRole());
   }
   @GetMapping("/list")
   public List<ListUserDTO> getAllUsers(){
